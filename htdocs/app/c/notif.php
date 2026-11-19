@@ -33,6 +33,9 @@ function notifications_for(array $u): array {
             if ($a['n'] > $a['done']) $add('pending-grades:' . $a['id'] . ':' . $a['done'], 'pencil-line', 'Notas pendentes: ' . $a['name'], $a['subject'] . ' · ' . ($a['n'] - $a['done']) . ' de ' . $a['n'] . ' alunos sem nota', url('prof.turma', ['id' => $a['section_id'], 'aba' => 'notas']));
     }
 
+    // Compras: aprovações, cotações e pedidos pendentes; mudanças nas próprias solicitações
+    foreach (purchase_notifications($u) as $n) $out[] = $n;
+
     // Financeiro: parcelas vencidas e a vencer
     if (in_array('finance:manage', $u['perms'], true)) {
         $n = (int) val("SELECT COUNT(*) FROM charges WHERE institution_id = ? AND status = 'ABERTA' AND due_on < ?", [$i, $t]);

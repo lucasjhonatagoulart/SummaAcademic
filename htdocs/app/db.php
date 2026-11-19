@@ -53,7 +53,7 @@ function setting(string $k, $default = null) {
     return $cache[$k] ?? $default;
 }
 // Atualiza o banco de uma instalação existente sem reinstalar (roda uma vez por versão).
-const SCHEMA_VERSION = 11;
+const SCHEMA_VERSION = 12;
 function migrate(): void {
     if ((int) setting('schema_version', '1') >= SCHEMA_VERSION) return;
     try { db()->query('SELECT teaching_director_name FROM institutions LIMIT 1'); }
@@ -96,6 +96,14 @@ function migrate(): void {
         }
         foreach (col("SELECT DISTINCT role_id FROM role_permissions WHERE perm = 'reports:institutional'") as $rid)
             if (!val("SELECT 1 FROM role_permissions WHERE role_id = ? AND perm = 'reports:finance'", [$rid])) insert('role_permissions', ['role_id' => $rid, 'perm' => 'reports:finance']);
+    }
+    if ((int) setting('schema_version', '1') < 12) { // módulo Compras
+        try { db()->query('SELECT id FROM purchase_requests LIMIT 1'); }
+        catch (PDOException $e) {
+            require_once __DIR__ . '/install_lib.php';
+            foreach (schema_statements(CONFIG['db']['driver'] ?? 'mysql') as $st)
+                if (preg_match('/CREATE (TABLE|INDEX) (purchase_requests|purchase_items|purchase_quotes|purchase_quote_prices|purchase_events|purchase_req_inst|purchase_events_req)\b/', $st)) db()->exec($st);
+        }
     }
     // remetente dos e-mails com nome antigo da plataforma passa a usar o nome da marca instalada
     if (in_array(setting('mail_from_name'), ['Academus', 'Aquinus', 'Summa'], true) && setting('mail_from_name') !== APP_NAME) set_setting('mail_from_name', APP_NAME);

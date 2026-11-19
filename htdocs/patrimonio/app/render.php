@@ -33,15 +33,17 @@ function render_page(): void
     switch ($page) {
         case 'dashboard':
             $title = 'Visão geral';
-            $content = render_template('dashboard.php', ['stats' => app_counts()]);
+            import_summa_purchases(db());
+            $content = render_template('dashboard.php', ['stats' => app_counts(), 'purchaseDrafts' => summa_purchase_drafts(db())]);
             break;
         case 'invoices':
             $title = 'Notas fiscais';
             $search = text_value($_GET['q'] ?? '', 160);
             $status = (string)($_GET['status'] ?? 'all');
             if (!in_array($status, ['all', 'draft', 'registered'], true)) $status = 'all';
+            import_summa_purchases(db());
             $data = list_invoices($search, $status, max(1, (int)($_GET['p'] ?? 1)));
-            $content = render_template('invoices.php', ['data' => $data, 'search' => $search, 'status' => $status]);
+            $content = render_template('invoices.php', ['data' => $data, 'search' => $search, 'status' => $status, 'purchaseDrafts' => summa_purchase_drafts(db())]);
             break;
         case 'new-invoice':
             require_permission('edit_invoices');

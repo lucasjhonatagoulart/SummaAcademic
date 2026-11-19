@@ -94,7 +94,7 @@ Envie de novo as pastas `app/`, `assets/` e `patrimonio/` (esta sem sobrescrever
 
 ## Workspace (plataforma Summa)
 
-Depois de entrar, quem tem acesso a mais de um módulo vê o **Workspace**: um card para cada módulo liberado (hoje **Acadêmico**, **Diretoria**, **Financeiro**, **Painel de controle** e **Patrimônio**), com as áreas que a pessoa acessa e o botão *Abrir módulo*. Quem tem um só módulo (ex.: aluno, professor) entra direto nele.
+Depois de entrar, quem tem acesso a mais de um módulo vê o **Workspace**: um card para cada módulo liberado (hoje **Acadêmico**, **Diretoria**, **Financeiro**, **Compras**, **Painel de controle** e **Patrimônio**), com as áreas que a pessoa acessa e o botão *Abrir módulo*. Quem tem um só módulo (ex.: aluno, professor) entra direto nele.
 Dentro de um módulo, *Todos os módulos* (no topo do menu lateral e no menu do perfil) volta ao Workspace.
 A liberação fica em **Gerenciamento de usuários › Instituições e permissões › Módulos e áreas**: cada módulo tem a chave Liberado/Bloqueado e, ao clicar, mostra as áreas. Módulo bloqueado não abre, mesmo com áreas marcadas.
 Os módulos são definidos em `PLATFORM_MODULES` (`app/perms.php`): nome, ícone, cores, áreas e portais. O Setor de TI já está listado como *em breve*.
@@ -102,6 +102,18 @@ Os módulos são definidos em `PLATFORM_MODULES` (`app/perms.php`): nome, ícone
 **Módulos por integração:** em Painel de controle › Módulos é possível incluir no Workspace um sistema que está em outra pasta do site. Ele traz um manifesto (`summa-module.json`) com nome, ícone, cor e permissões; o Summa gera o segredo do login único e passa a oferecer as permissões na tela de usuários. O contrato e um módulo de exemplo estão em `INTEGRACAO-MODULOS.md` e `kit-modulo/`. O cadastro fica em `settings.ext_modules`, sem tabela nova.
 
 O **Patrimônio** é um sistema à parte, na pasta `patrimonio/`, com banco próprio. O card abre a rota `index.php?r=patrimonio`, que entrega a ele um acesso assinado (login único). Para ligar, veja `LEIA-ME-INTEGRACAO.md`; enquanto `patrimonio_sso_secret` não estiver no `config.php`, o card aparece, mas avisa que o módulo não foi configurado.
+
+## Compras (solicitações de compra)
+
+Módulo nativo, no portal `comp` (`app/c/purchases.php`). Fluxo: **Rascunho → Enviada → Em cotação → Aguardando aprovação → Aprovada → Comprada → Recebida** (ou Recusada / Cancelada).
+
+- **Nova solicitação:** título, setor, justificativa, prazo, prioridade, **local da compra** (Mercado Livre, Magalu, Amazon, Shopee, site do fornecedor, loja física ou outro; link para os sites), **forma de pagamento** (Pix, Boleto ou Cartão de crédito, com parcelas de 1x a 12x numa lista) e itens, cada um marcado como patrimoniável ou consumo.
+- **Cotações:** até 3 por solicitação, com preço por item, frete, prazo, local e pagamento. A ficha mostra as cotações em cartões (com selos Menor preço e Menor prazo) e o botão *Exibir em tabela* para comparar item a item.
+- **Aprovação única:** quem aprova escolhe a cotação vencedora. Recusar, ou escolher uma que não é a mais barata, exige motivo.
+- **Recebimento:** número da NF-e, data e quantidade recebida por item. Se houver itens patrimoniáveis, aparece *Importar para o Patrimônio?* (Importar / Agora não; dá para enviar depois pela ficha).
+- **Envio ao Patrimônio:** o Summa grava um arquivo em `patrimonio/entradas-compras/` (pasta bloqueada para a web) e o Patrimônio o importa ao abrir a Visão geral ou Notas fiscais, como **NF-e em rascunho** com fornecedor, número, quantidades e valores da cotação. Lá se define conta patrimonial, local e patrimônio e se incorpora. O mesmo envio nunca é importado duas vezes.
+- **Permissões** (liberadas por usuário em Módulos e áreas › Compras): *Solicitar* (`purchase:request`, vê só as próprias), *Cotar e comprar* (`purchase:manage`), *Aprovar* (`purchase:approve`) e *Consulta* (`purchase:read`). Nenhum perfil pronto recebe Compras: o administrador libera para cada pessoa.
+- Também tem Fornecedores (montado pelas cotações), Relatórios (por mês, por setor e por etapa), avisos no sino e registro na auditoria.
 
 ## Exportar para ERP (Omie)
 
@@ -130,6 +142,8 @@ python3 tests/smoke.py admin@academus.dev Aquinosys admin.inicio admin.controle
 python3 tests/flows.py             # fluxos completos
 python3 tests/patrimonio.py        # módulo Patrimônio: card, liberação, login único e saída
 python3 tests/modulos.py           # módulos por integração: incluir, liberar, login único, atualizar, remover
+python3 tests/compras.py           # Compras: solicitar, cotar, aprovar, comprar, receber e enviar ao Patrimônio
+php htdocs/patrimonio/tests/test_summa_purchases.php   # Patrimônio: importação das entradas de Compras
 ```
 
 `setup_local.php` grava um `htdocs/config.php` de teste. Apague esse arquivo antes de enviar para o servidor.

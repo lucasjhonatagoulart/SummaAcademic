@@ -205,3 +205,73 @@ function fold(string $s): string {
     $s = mb_strtolower($s);
     return strtr($s, ['á' => 'a', 'à' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'é' => 'e', 'ê' => 'e', 'è' => 'e', 'í' => 'i', 'î' => 'i', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ú' => 'u', 'ü' => 'u', 'ç' => 'c']);
 }
+
+// ---------- Compras ----------
+/** Etapas da solicitação: código => [rótulo, classe do selo] */
+const PURCHASE_STATUS = [
+    'RASCUNHO' => ['Rascunho', 'b-neutral'], 'ENVIADA' => ['Enviada', 'b-neutral'], 'COTACAO' => ['Em cotação', 'b-info'],
+    'APROVACAO' => ['Aguardando aprovação', 'b-warn'], 'APROVADA' => ['Aprovada', 'b-teal'], 'COMPRADA' => ['Comprada', 'b-violet'],
+    'RECEBIDA' => ['Recebida', 'b-ok'], 'RECUSADA' => ['Recusada', 'b-bad'], 'CANCELADA' => ['Cancelada', 'b-neutral'],
+];
+/** Passos do andamento mostrados na ficha */
+const PURCHASE_STEPS = ['Enviada', 'Cotação', 'Aprovação', 'Compra', 'Recebimento'];
+const PURCHASE_PLACES = ['Mercado Livre', 'Magalu', 'Amazon', 'Shopee', 'Site do fornecedor', 'Fornecedor local ou loja física', 'Outro'];
+/** Locais que são sites: pedem link do produto */
+const PURCHASE_ONLINE = ['Mercado Livre', 'Magalu', 'Amazon', 'Shopee', 'Site do fornecedor'];
+const PURCHASE_PAYMENTS = ['PIX' => 'Pix', 'BOLETO' => 'Boleto', 'CARTAO' => 'Cartão de crédito'];
+const PURCHASE_UNITS = ['un.', 'cx.', 'pct.', 'resma', 'kg', 'l', 'm', 'par', 'jogo', 'kit'];
+const PURCHASE_MAX_QUOTES = 3;
+
+function purchase_code(int $id): string { return 'SC-' . str_pad((string) $id, 4, '0', STR_PAD_LEFT); }
+/** Índice do passo atual no andamento (5 = concluída) */
+function purchase_step(string $status): int {
+    return ['RASCUNHO' => 0, 'ENVIADA' => 0, 'COTACAO' => 1, 'APROVACAO' => 2, 'RECUSADA' => 2, 'APROVADA' => 3, 'COMPRADA' => 4, 'RECEBIDA' => 5, 'CANCELADA' => 0][$status] ?? 0;
+}
+function purchase_payment_label(string $payment, int $installments): string {
+    $l = PURCHASE_PAYMENTS[$payment] ?? $payment;
+    return $payment === 'CARTAO' ? $l . ' · ' . ($installments > 1 ? $installments . 'x' : 'à vista') : $l;
+}
+function purchase_place_label(string $place, ?string $other): string { return $place === 'Outro' && trim((string) $other) !== '' ? trim((string) $other) : $place; }
+/** Total de uma cotação: soma de quantidade × preço de cada item, mais o frete */
+function purchase_quote_total(array $qtyByItem, array $unitByItem, int $shipping = 0): int {
+    $t = $shipping;
+    foreach ($qtyByItem as $id => $q) $t += (int) $q * (int) ($unitByItem[$id] ?? 0);
+    return $t;
+}
+/** Cotação de menor total (empate: a registrada primeiro) */
+function purchase_cheapest(array $quotes): ?int {
+    $best = null;
+    foreach ($quotes as $q) if ($best === null || (int) $q['total_cents'] < (int) $best['total_cents']) $best = $q;
+    return $best ? (int) $best['id'] : null;
+}
+function valid_http_url(string $u): bool { return (bool) preg_match('#^https?://[^\s<>"]{3,}$#i', $u) && filter_var($u, FILTER_VALIDATE_URL) !== false; }
+/** Confere local e forma de pagamento (pedido e cotação usam as mesmas regras) */
+function validate_purchase_place_payment(array $i): ?string {
+    if (!in_array($i['place'] ?? '', PURCHASE_PLACES, true)) return 'Escolha o local da compra.';
+    if (($i['place'] ?? '') === 'Outro' && trim((string) ($i['place_other'] ?? '')) === '') return 'Informe qual é o local da compra.';
+    if (($i['link'] ?? '') !== '' && !valid_http_url($i['link'])) return 'O link precisa começar com http:// ou https://.';
+    if (!isset(PURCHASE_PAYMENTS[$i['payment'] ?? ''])) return 'Escolha a forma de pagamento.';
+    $n = (int) ($i['installments'] ?? 1);
+    if (($i['payment'] ?? '') === 'CARTAO' && ($n < 1 || $n > 12)) return 'Escolha de 1 a 12 parcelas.';
+    return null;
+}
+/** Confere uma solicitação antes de salvar; $items: [['description','quantity','unit','est_unit_cents','patrimonial']] */
+function validate_purchase_request(array $i, array $items, string $today): ?string {
+    $t = trim((string) ($i['title'] ?? ''));
+    if (mb_strlen($t) < 3 || mb_strlen($t) > 160) return 'Informe um título de 3 a 160 caracteres.';
+    if (trim((string) ($i['sector'] ?? '')) === '' || mb_strlen((string) $i['sector']) > 80) return 'Informe o setor.';
+    if (mb_strlen(trim((string) ($i['justification'] ?? ''))) < 10) return 'Explique em uma frase por que a compra é necessária.';
+    if (($i['needed_by'] ?? '') !== '' && (!valid_date($i['needed_by']) || $i['needed_by'] < $today)) return 'A data "Precisa até" deve ser hoje ou depois.';
+    if (!in_array($i['priority'] ?? '', ['NORMAL', 'URGENTE'], true)) return 'Escolha a prioridade.';
+    if ($e = validate_purchase_place_payment($i)) return $e;
+    if (!$items) return 'Inclua pelo menos um item.';
+    if (count($items) > 50) return 'Uma solicitação pode ter até 50 itens.';
+    foreach ($items as $k => $it) {
+        $n = $k + 1;
+        if (mb_strlen($it['description']) < 2 || mb_strlen($it['description']) > 255) return "Descreva o item $n.";
+        if ($it['quantity'] < 1 || $it['quantity'] > 100000) return "A quantidade do item $n deve ser de 1 a 100.000.";
+        if (!in_array($it['unit'], PURCHASE_UNITS, true)) return "Escolha a unidade do item $n.";
+        if ($it['est_unit_cents'] !== null && $it['est_unit_cents'] < 0) return "O valor estimado do item $n é inválido.";
+    }
+    return null;
+}

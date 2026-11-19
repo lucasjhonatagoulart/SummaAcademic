@@ -376,3 +376,86 @@ CREATE TABLE charges (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 CREATE INDEX charges_student ON charges (student_id, competence);
 CREATE INDEX charges_due ON charges (institution_id, status, due_on);
+
+-- Compras: solicitações, itens, cotações (até 3), preços por item e histórico
+CREATE TABLE purchase_requests (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  institution_id INT UNSIGNED NOT NULL,
+  requester_id INT UNSIGNED NOT NULL,
+  title VARCHAR(160) NOT NULL,
+  sector VARCHAR(80) NOT NULL,
+  justification TEXT NOT NULL,
+  needed_by DATE,
+  priority VARCHAR(10) NOT NULL DEFAULT 'NORMAL',
+  place VARCHAR(60) NOT NULL,
+  place_other VARCHAR(120),
+  link VARCHAR(500),
+  payment VARCHAR(10) NOT NULL,
+  installments INT NOT NULL DEFAULT 1,
+  status VARCHAR(12) NOT NULL DEFAULT 'RASCUNHO',
+  winner_quote_id INT UNSIGNED,
+  approved_cents INT,
+  decided_by INT UNSIGNED,
+  decided_at DATETIME,
+  decision_note VARCHAR(500),
+  purchase_ref VARCHAR(60),
+  purchased_on DATE,
+  invoice_number VARCHAR(60),
+  received_on DATE,
+  received_by INT UNSIGNED,
+  patrimony_status VARCHAR(10) NOT NULL DEFAULT '',
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  FOREIGN KEY (requester_id) REFERENCES users (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE INDEX purchase_req_inst ON purchase_requests (institution_id, status);
+
+CREATE TABLE purchase_items (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  request_id INT UNSIGNED NOT NULL,
+  position INT NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  quantity INT NOT NULL,
+  unit VARCHAR(10) NOT NULL DEFAULT 'un.',
+  est_unit_cents INT,
+  patrimonial TINYINT NOT NULL DEFAULT 0,
+  received_qty INT,
+  FOREIGN KEY (request_id) REFERENCES purchase_requests (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE purchase_quotes (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  request_id INT UNSIGNED NOT NULL,
+  supplier VARCHAR(160) NOT NULL,
+  place VARCHAR(60) NOT NULL,
+  link VARCHAR(500),
+  payment VARCHAR(10) NOT NULL,
+  installments INT NOT NULL DEFAULT 1,
+  delivery_days INT,
+  shipping_cents INT NOT NULL DEFAULT 0,
+  total_cents INT NOT NULL,
+  notes VARCHAR(255),
+  created_by INT UNSIGNED,
+  created_at DATETIME NOT NULL,
+  FOREIGN KEY (request_id) REFERENCES purchase_requests (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE purchase_quote_prices (
+  quote_id INT UNSIGNED NOT NULL,
+  item_id INT UNSIGNED NOT NULL,
+  unit_cents INT NOT NULL,
+  PRIMARY KEY (quote_id, item_id),
+  FOREIGN KEY (quote_id) REFERENCES purchase_quotes (id) ON DELETE CASCADE,
+  FOREIGN KEY (item_id) REFERENCES purchase_items (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE purchase_events (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  request_id INT UNSIGNED NOT NULL,
+  actor_id INT UNSIGNED,
+  action VARCHAR(30) NOT NULL,
+  note VARCHAR(500),
+  created_at DATETIME NOT NULL,
+  FOREIGN KEY (request_id) REFERENCES purchase_requests (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE INDEX purchase_events_req ON purchase_events (request_id, created_at);

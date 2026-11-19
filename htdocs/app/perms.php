@@ -10,6 +10,7 @@ const MODULE_LABEL = [
     'classroom' => 'Professor',
     'student' => 'Aluno',
     'patrimony' => 'Patrimônio',
+    'purchasing' => 'Compras',
 ];
 const MODULE_INFO = [
     'admin' => ['shield', 'Painel de controle: usuários, instituição, e-mail e auditoria.'],
@@ -20,11 +21,14 @@ const MODULE_INFO = [
     'classroom' => ['presentation', 'Portal do Professor. Só vale para quem tem cadastro de professor.'],
     'student' => ['backpack', 'Portal do Aluno. Só vale para quem tem cadastro de aluno.'],
     'patrimony' => ['package', 'Notas fiscais, ativos, baixas, relatórios e backup do patrimônio.'],
+    'purchasing' => ['shopping-cart', 'Solicitações de compra, cotações, aprovação e recebimento.'],
 ];
 
 /** Rótulos curtos das permissões do Patrimônio (aparecem em "Suas áreas" no card do Workspace) */
 const PATRIMONY_AREA_LABEL = ['patrimony:access' => 'Consulta', 'patrimony:invoices' => 'Notas fiscais', 'patrimony:assets' => 'Ativos e baixas', 'patrimony:catalogs' => 'Contas e locais',
     'patrimony:export' => 'Exportação', 'patrimony:admin' => 'Administração', 'patrimony:restore' => 'Restauração de backup'];
+/** Rótulos curtos das permissões de Compras (aparecem em "Suas áreas" no card do Workspace) */
+const PURCHASE_AREA_LABEL = ['purchase:request' => 'Solicitar', 'purchase:manage' => 'Cotar e comprar', 'purchase:approve' => 'Aprovar', 'purchase:read' => 'Consulta'];
 const CONTROL_AREA_LABEL = ['users:manage' => 'Usuários', 'modules:manage' => 'Módulos', 'institution:settings' => 'Instituição e e-mail', 'platform:manage' => 'Instituições', 'audit:read' => 'Auditoria'];
 
 /**
@@ -44,6 +48,9 @@ const PLATFORM_MODULES = [
     'financeiro' => ['name' => 'Financeiro', 'icon' => 'wallet', 'stripe' => '#1F845A', 'ink' => '#17694A', 'soft' => '#E6F4EE',
         'desc' => 'Mensalidades e cobranças, inadimplência, pagamento de professores, balancete e exportação para o ERP.',
         'areas' => ['finance'], 'portals' => ['fin'], 'labels' => ['finance:manage' => 'Alunos e cobranças', 'payroll:manage' => 'Professores']],
+    'compras' => ['name' => 'Compras', 'icon' => 'shopping-cart', 'stripe' => '#C2417A', 'ink' => '#9C2F60', 'soft' => '#FBE9F1',
+        'desc' => 'Solicitações de compra, cotações de até 3 fornecedores, aprovação, compra e recebimento, com envio dos itens patrimoniáveis ao Patrimônio.',
+        'areas' => ['purchasing'], 'portals' => ['comp'], 'labels' => PURCHASE_AREA_LABEL],
     'controle' => ['name' => 'Painel de controle', 'icon' => 'sliders-horizontal', 'stripe' => '#172B4D', 'ink' => '#172B4D', 'soft' => '#E9EDF4',
         'desc' => 'Usuários e liberação de módulos, dados da instituição, envio de e-mails, instituições cadastradas e auditoria.',
         'areas' => ['admin'], 'portals' => [], 'entry' => 'admin.controle', 'labels' => CONTROL_AREA_LABEL],
@@ -80,6 +87,10 @@ const PERMISSIONS = [
     'classroom:own' => ['classroom', 'Acessar as próprias turmas (diário, chamada e notas)'],
     'student-portal:own' => ['student', 'Consultar cursos, notas, frequência e financeiro próprios'],
     'electives:enroll:own' => ['student', 'Escolher eletivas e horários'],
+    'purchase:request' => ['purchasing', 'Abrir solicitações de compra e acompanhar as próprias'],
+    'purchase:manage' => ['purchasing', 'Registrar cotações, compras e recebimentos (vê todas as solicitações)'],
+    'purchase:approve' => ['purchasing', 'Aprovar ou recusar compras'],
+    'purchase:read' => ['purchasing', 'Consultar todas as solicitações, sem editar'],
     'patrimony:access' => ['patrimony', 'Entrar no Patrimônio e consultar notas, ativos e relatórios'],
     'patrimony:invoices' => ['patrimony', 'Cadastrar, revisar e incorporar NF-e (importar XML)'],
     'patrimony:assets' => ['patrimony', 'Editar ativos e registrar baixas'],
@@ -134,7 +145,7 @@ function platform_modules(): array {
     return $placed ? $out : $out + $ext;
 }
 
-const PORTAL_LABEL = ['admin' => 'Painel Administrativo', 'dir' => 'Painel da Diretoria', 'fin' => 'Financeiro', 'prof' => 'Portal do Professor', 'aluno' => 'Portal do Aluno'];
+const PORTAL_LABEL = ['admin' => 'Painel Administrativo', 'dir' => 'Painel da Diretoria', 'fin' => 'Financeiro', 'comp' => 'Compras', 'prof' => 'Portal do Professor', 'aluno' => 'Portal do Aluno'];
 
 /** Menus: [rótulo, rota, ícone, permissões (qualquer uma), rotas que acendem o item] */
 function nav_for(string $portal): array {
@@ -185,6 +196,14 @@ function nav_for(string $portal): array {
                 ['Balancete', 'fin.balancete', 'scale', ['finance:manage']],
                 ['Exportar', 'fin.exportar', 'file-spreadsheet', ['finance:manage']],
                 $mural,
+            ],
+        ],
+        'comp' => [
+            'Compras' => [
+                ['Início', 'comp.inicio', 'house'],
+                ['Solicitações', 'comp.solicitacoes', 'file-text', [], ['comp.solicitacao', 'comp.nova', 'comp.cotacao', 'comp.receber']],
+                ['Fornecedores', 'comp.fornecedores', 'truck', ['purchase:manage', 'purchase:approve', 'purchase:read']],
+                ['Relatórios', 'comp.relatorios', 'chart-column', ['purchase:manage', 'purchase:approve', 'purchase:read']],
             ],
         ],
         'prof' => [

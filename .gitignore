@@ -18,3 +18,7 @@ summa-data/
 __pycache__/
 .DS_Store
 Thumbs.db
+
+# Entradas de Compras ainda não importadas pelo Patrimônio
+htdocs/patrimonio/entradas-compras/*.json
+htdocs/patrimonio/entradas-compras/com-erro/

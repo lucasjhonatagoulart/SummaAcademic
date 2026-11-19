@@ -3,7 +3,7 @@ DirectoryIndex index.php
 
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteRule ^(?:app|templates|tests)/ - [F,L,NC]
+RewriteRule ^(?:app|templates|tests|entradas-compras)/ - [F,L,NC]
 RewriteRule ^(?:config(?:\.example)?\.php|schema\.sql|upgrade-[A-Za-z0-9_-]+\.sql|README\.md|GUIA-INFINITYFREE\.md|TODO\.md|plan\.md|research\.md|VERSAO\.txt)$ - [F,L,NC]
 </IfModule>
 

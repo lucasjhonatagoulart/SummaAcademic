@@ -1,6 +1,6 @@
 <?php
 // Carrega configuração, bibliotecas e controladores.
-const APP_VERSION = '1.16.2';
+const APP_VERSION = '1.17.0';
 date_default_timezone_set('America/Sao_Paulo');
 mb_internal_encoding('UTF-8');
 
