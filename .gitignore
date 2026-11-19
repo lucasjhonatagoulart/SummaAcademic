@@ -1,0 +1,20 @@
+# Configurações com senhas e segredos: ficam só no servidor
+/htdocs/config.php
+/htdocs/patrimonio/config.php
+/htdocs/ti/config.php
+*.secret.php
+
+# Dados enviados pelos usuários
+/htdocs/uploads/*
+!/htdocs/uploads/.htaccess
+
+# Dados reais de produção (conta do administrador, inventário)
+/banco/**/dados.sql
+
+# Arquivos de teste e do sistema
+*.sqlite
+summa-data/
+/htdocs/modulo-exemplo/
+__pycache__/
+.DS_Store
+Thumbs.db

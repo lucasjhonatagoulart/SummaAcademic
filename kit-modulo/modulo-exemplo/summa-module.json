@@ -1,0 +1,13 @@
+{
+  "slug": "exemplo",
+  "name": "Módulo de exemplo",
+  "description": "Modelo de módulo por integração: mostra quem entrou pelo Summa e o que essa pessoa pode fazer.",
+  "icon": "blocks",
+  "color": "teal",
+  "entry": "index.php",
+  "permissions": [
+    { "code": "access", "label": "Entrar no módulo e consultar", "short": "Consulta" },
+    { "code": "edit", "label": "Cadastrar e editar registros", "short": "Edição" },
+    { "code": "admin", "label": "Configurar o módulo", "short": "Configuração" }
+  ]
+}

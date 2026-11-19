@@ -1,0 +1,14 @@
+{
+  "slug": "ti",
+  "name": "Setor de TI",
+  "description": "Inventário de computadores, redes e projetores, chamados e manutenção preventiva.",
+  "icon": "monitor",
+  "color": "violeta",
+  "entry": "index.php",
+  "permissions": [
+    {"code": "solicitar", "label": "Abrir chamados e acompanhar os próprios pedidos", "short": "Solicitar"},
+    {"code": "diretor",   "label": "Consultar inventário, chamados e manutenções (sem editar)", "short": "Consulta"},
+    {"code": "tecnico",   "label": "Atender chamados e registrar manutenções, computadores, redes e projetores", "short": "Técnico"},
+    {"code": "admin",     "label": "Tudo do técnico, com acesso total ao módulo", "short": "Administrador"}
+  ]
+}

@@ -1,0 +1,5 @@
+# Fecha ao navegador o segredo do login único e o manifesto de permissões
+<FilesMatch "^(summa\.secret\.php|summa-client\.php|summa-module\.json)$">
+    Require all denied
+</FilesMatch>
+Options -Indexes

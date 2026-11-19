@@ -1,0 +1,20 @@
+# Setor de TI - regras do Apache (InfinityFree aceita .htaccess)
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "same-origin"
+</IfModule>
+
+# Impede abrir diretamente arquivos internos
+<FilesMatch "^(config\.php|summa\.secret\.php|summa-client\.php|summa-module\.json|.*\.sql|.*\.md|.*\.txt)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>

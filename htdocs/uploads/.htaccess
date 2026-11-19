@@ -1,0 +1,5 @@
+# Só imagens; nada de PHP nesta pasta
+Options -Indexes
+<FilesMatch "\.(php|phtml|php\d|phar|html?|js|svg)$">
+  Require all denied
+</FilesMatch>

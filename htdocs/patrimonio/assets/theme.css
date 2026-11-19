@@ -1,0 +1,67 @@
+/* Controle Patrimonial — tokens do padrão visual Summa.
+   Tema claro (padrão) e escuro. O theme.js grava data-theme="light|dark" em <html> antes da página aparecer;
+   na opção Automático ele segue o tema do computador ou celular. A impressão sai sempre clara. */
+:root {
+  --navy: #172B4D; --navy-2: #22385E; --navy-muted: #8D9BB3;
+  --blue: #2878D0; --blue-hover: #1F68B8; --blue-soft: #E8F1FB;
+  --yellow: #F0B44D; --yellow-soft: #FDF4E3; --yellow-ink: #7A5310;
+  --gray: #F4F6FA; --surface: #FFFFFF; --surface-2: #FAFBFC; --brand: #172B4D;
+  --ink: #172B4D; --muted: #5E6C84; --subtle: #8993A4; --line: #E1E5EC; --line-strong: #C5CFDF;
+  --green: #1F845A; --green-soft: #E6F4EE; --red: #C9372C; --red-soft: #FDECEA;
+  --table-head: rgb(244 246 250 / .8); --row-hover: rgb(244 246 250 / .6);
+  --font: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --r-sm: 6px; --r-md: 8px; --r-lg: 12px;
+  --shadow: 0 1px 2px rgb(23 43 77 / .06), 0 1px 3px rgb(23 43 77 / .04);
+  --shadow-up: 0 8px 24px rgb(23 43 77 / .14);
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%235E6C84' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  /* Gráfico circular do dashboard: paleta aprovada, igual nos dois temas */
+  --donut-1: #8ECAE6;
+  --donut-2: #219EBC;
+  --donut-3: #023047;
+  --donut-4: #FFB703;
+  --donut-5: #FB8500;
+  --donut-gap: #FFFFFF;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --navy: #E4EAF4; --navy-2: #C9D4E6; --navy-muted: #8D9BB3;
+  --blue: #4B94E4; --blue-hover: #6AA8EC; --blue-soft: #17304E;
+  --yellow: #F0B44D; --yellow-soft: #33280F; --yellow-ink: #F2C56E;
+  --gray: #0E1521; --surface: #172131; --surface-2: #1B2638; --brand: #0B1424;
+  --ink: #D9E1EC; --muted: #9AA8BC; --subtle: #7D8AA0; --line: #263245; --line-strong: #37465E;
+  --green: #4CC38A; --green-soft: #0F2E21; --red: #F2776D; --red-soft: #3A1C1B;
+  --table-head: #1A2535; --row-hover: #1C2840;
+  --shadow: 0 1px 2px rgb(0 0 0 / .35), 0 1px 3px rgb(0 0 0 / .25);
+  --shadow-up: 0 10px 28px rgb(0 0 0 / .5);
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%239AA8BC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  --donut-3: #023047;
+  --donut-gap: #172131;
+  color-scheme: dark;
+}
+:root[data-theme="dark"] .sidebar { border-right: 1px solid #1C2738; }
+:root[data-theme="dark"] .scrim { background: rgb(0 0 0 / .6); }
+
+/* Tamanho do texto: pequeno, médio (padrão) e grande */
+:root { --z: 1.125; }
+:root[data-size="sm"] { --z: 1; }
+:root[data-size="lg"] { --z: 1.25; }
+@media (max-width: 600px) {
+  :root { --z: 1.06; }
+  :root[data-size="sm"] { --z: 1; }
+  :root[data-size="lg"] { --z: 1.15; }
+}
+
+@media print {
+  :root, :root[data-theme="dark"] {
+    --navy: #172B4D; --navy-2: #22385E; --blue: #2878D0; --blue-hover: #1F68B8; --blue-soft: #E8F1FB;
+    --yellow-soft: #FDF4E3; --yellow-ink: #7A5310;
+    --gray: #F4F6FA; --surface: #FFFFFF; --surface-2: #FAFBFC; --brand: #172B4D;
+    --ink: #172B4D; --muted: #5E6C84; --subtle: #8993A4; --line: #E1E5EC; --line-strong: #C5CFDF;
+    --green: #1F845A; --green-soft: #E6F4EE; --red: #C9372C; --red-soft: #FDECEA;
+    --table-head: rgb(244 246 250 / .8); --row-hover: rgb(244 246 250 / .6);
+    --donut-gap: #FFFFFF;
+    color-scheme: light;
+  }
+  :root, :root[data-size] { --z: 1 !important; }
+}
