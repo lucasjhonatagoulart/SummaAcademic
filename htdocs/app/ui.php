@@ -102,7 +102,7 @@ function layout(string $title, string $content): void {
 /** Lado direito da barra superior: Aparência, notificações e menu do usuário (módulos e o Workspace usam o mesmo) */
 function top_actions(array $u, string $portal = '', string $curMod = ''): string {
     $mods = user_modules($u);
-    $areaIcon = ['admin' => 'shield', 'dir' => 'landmark', 'fin' => 'wallet', 'prof' => 'presentation', 'aluno' => 'graduation-cap'];
+    $areaIcon = ['admin' => 'shield', 'dir' => 'landmark', 'fin' => 'wallet', 'comp' => 'shopping-cart', 'prof' => 'presentation', 'aluno' => 'graduation-cap'];
     $others = '';
     // Outras áreas do mesmo módulo ficam no menu do perfil; os outros módulos ficam no Workspace
     if ($portal && $curMod === 'academico') foreach ($u['portals'] as $pp) if ($pp !== $portal && module_of_portal($pp) === $curMod && ($pp !== 'admin' || module_entry($u, 'academico') === 'admin.inicio')) $others .= '<a role="menuitem" href="' . h(url($pp . '.inicio')) . '">' . icon($areaIcon[$pp] ?? 'layout-grid') . ' ' . h(PORTAL_LABEL[$pp]) . '</a>';

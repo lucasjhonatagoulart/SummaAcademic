@@ -54,6 +54,7 @@ $donutLabel = $chartTotal > 0
     <div><p class="eyebrow">Resumo patrimonial</p><h1>Visão geral</h1><p>Notas fiscais, ativos e baixas em um só lugar, no mesmo padrão.</p></div>
     <?php if (can('edit_invoices')): ?><div class="actions"><a class="button" href="<?= h(page_url('new-invoice')) ?>">+ Cadastrar NF-e</a><a class="button primary" href="<?= h(page_url('new-invoice')) ?>#xml">Importar XML</a></div><?php endif; ?>
 </section>
+<?php if (!empty($purchaseDrafts)): ?><div class="notice purchase-notice" role="status"><strong><?= (int)$purchaseDrafts === 1 ? '1 nota veio de Compras do Summa' : (int)$purchaseDrafts . ' notas vieram de Compras do Summa' ?></strong> e aguarda<?= (int)$purchaseDrafts === 1 ? '' : 'm' ?> classificação: defina conta patrimonial, local e patrimônio dos itens e incorpore. <a href="<?= h(page_url('invoices', ['status' => 'draft'])) ?>">Ver rascunhos</a></div><?php endif; ?>
 <div class="grid stats">
     <article class="stat"><div class="stat-label">Ativos em controle</div><div class="stat-value"><?= number_format($active,0,',','.') ?></div><div class="stat-foot">Fixo e pequeno valor</div></article>
     <article class="stat"><div class="stat-label">Valor histórico ativo</div><div class="stat-value"><?= h(money_br($assetValue)) ?></div><div class="stat-foot">Sem cálculo de depreciação</div></article>

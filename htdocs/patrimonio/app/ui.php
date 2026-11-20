@@ -6,7 +6,7 @@ declare(strict_types=1);
 // Este arquivo não depende do banco nem da sessão: o instalador o carrega sozinho.
 
 /** Versão do aplicativo: também invalida o cache de CSS e JavaScript a cada atualização. */
-const APP_VERSION = '1.9.2';
+const APP_VERSION = '1.9.3';
 
 function ui_escape(string $value): string
 {

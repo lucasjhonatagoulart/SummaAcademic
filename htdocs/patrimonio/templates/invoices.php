@@ -1,6 +1,7 @@
 <section class="heading">
     <div><p class="eyebrow">Do documento ao patrimônio</p><h1>Notas fiscais</h1><p>Importe ou cadastre notas, revise os itens e incorpore bens em um padrão único.</p></div>
 </section>
+<?php if (!empty($purchaseDrafts)): ?><div class="notice purchase-notice" role="status"><strong><?= (int)$purchaseDrafts === 1 ? '1 nota veio de Compras do Summa' : (int)$purchaseDrafts . ' notas vieram de Compras do Summa' ?></strong> e aguarda<?= (int)$purchaseDrafts === 1 ? '' : 'm' ?> classificação: defina conta patrimonial, local e patrimônio dos itens e incorpore. </div><?php endif; ?>
 <?php if (can('edit_invoices') || can('export_data')): ?><div class="actions invoice-page-actions" aria-label="Ações de notas fiscais">
     <?php if (can('edit_invoices')): ?><a class="button primary" href="<?= h(page_url('new-invoice')) ?>">Cadastrar / Importar NF-e</a><?php endif; ?>
     <?php if (can('export_data')): ?><a class="button" href="<?= h(page_url('download', ['kind' => 'invoices'])) ?>">Exportar NF-es (.xlsx)</a><?php endif; ?>

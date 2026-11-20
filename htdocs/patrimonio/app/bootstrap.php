@@ -32,6 +32,7 @@ header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
 require_once __DIR__ . '/ui.php';
 require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/summa.php';
+require_once __DIR__ . '/summa_purchases.php';
 require_once __DIR__ . '/nfe.php';
 require_once __DIR__ . '/invoice_workflow.php';
 require_once __DIR__ . '/repository.php';

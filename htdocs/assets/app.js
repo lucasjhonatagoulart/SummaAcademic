@@ -21,6 +21,31 @@
 
   // Confirmação antes de ações sensíveis
   document.addEventListener("submit", (e) => { const m = e.target.getAttribute("data-confirm"); if (m && !confirm(m)) e.preventDefault(); });
+  // Campos que aparecem conforme outro campo (data-show-when="nome=valor1|valor2"); os escondidos ficam desativados
+  const showWhen = $$("[data-show-when]");
+  const syncShow = () => showWhen.forEach((box) => {
+    const [name, vals] = box.dataset.showWhen.split("="), form = box.closest("form");
+    const el = form && (form.querySelector(`[name="${name}"]:checked`) || form.querySelector(`select[name="${name}"]`));
+    const on = !!el && vals.split("|").includes(el.value);
+    box.hidden = !on; $$("input,select,textarea", box).forEach((x) => { x.disabled = !on; });
+  });
+  if (showWhen.length) { document.addEventListener("change", syncShow); syncShow(); }
+  // Valor em reais: digita só números e os centavos entram sozinhos (1 → 0,01; 12345 → 123,45)
+  const moneyFmt = (digits) => { const d = digits.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 13); if (!d) return ""; const c = d.padStart(3, "0"); return c.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "," + c.slice(-2); };
+  document.addEventListener("input", (e) => { const el = e.target; if (!el.matches || !el.matches("input[data-money]")) return; el.value = moneyFmt(el.value); el.setSelectionRange(el.value.length, el.value.length); });
+  // Linhas que se adicionam e removem (data-add-row="#template", data-remove-row)
+  let rowSeq = 1000;
+  document.addEventListener("click", (e) => {
+    const add = e.target.closest("[data-add-row]");
+    if (add) {
+      const tpl = $(add.dataset.addRow), body = add.closest(".card")?.querySelector("[data-rows]");
+      if (!tpl || !body) return;
+      body.insertAdjacentHTML("beforeend", tpl.innerHTML.replaceAll("__N__", String(rowSeq++)));
+      paint(); body.lastElementChild?.querySelector("input")?.focus();
+    }
+    const rm = e.target.closest("[data-remove-row]");
+    if (rm) { const body = rm.closest("[data-rows]"), tr = rm.closest("[data-row]"); if (body && tr && body.querySelectorAll("[data-row]").length > 1) tr.remove(); else tr?.querySelectorAll("input").forEach((i) => { i.value = i.type === "checkbox" ? i.value : ""; i.checked = false; }); }
+  });
   // Filtros que enviam ao mudar
   $$("[data-autosubmit]").forEach((el) => el.addEventListener("change", () => el.form.submit()));
   // Linhas clicáveis

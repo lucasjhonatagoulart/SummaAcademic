@@ -30,3 +30,10 @@ Versão 1.9.2 (13/11/2026) — marca do Summa e ações da lista de ativos.
 - Depois de salvar a edição ou excluir, o sistema volta para a lista de ativos, nos mesmos filtros e página (antes ia para a ficha do ativo).
 - Na ficha do ativo, o bloco Excluir ativo saiu do topo e foi para o fim da página.
 - Novos testes: tests/test_asset_list_actions.php; mais verificações em tests/test_summa_login_db.php e tests/test_site_actions.php.
+
+Versão 1.9.3 (19/11/2026) — entradas do módulo Compras do Summa.
+- Quando o Summa registra o recebimento de uma compra com itens patrimoniáveis e alguém escolhe Importar para o Patrimônio, chega um arquivo em entradas-compras/ (pasta bloqueada para a web). Ao abrir a Visão geral ou Notas fiscais, cada arquivo vira uma NF-e em rascunho com fornecedor, número, quantidades e valores; a observação identifica a solicitação (SC-0000), o setor, quem pediu e quem aprovou.
+- Os itens chegam como ativo imobilizado, sem conta patrimonial, local e patrimônio: quem cuida do patrimônio completa e incorpora pelo fluxo de sempre.
+- A tabela summa_purchase_imports (criada sozinha) impede importar o mesmo envio duas vezes; arquivos inválidos vão para entradas-compras/com-erro/.
+- Visão geral e Notas fiscais mostram um aviso com quantas notas de Compras aguardam classificação.
+- Novo teste: tests/test_summa_purchases.php.
