@@ -53,7 +53,7 @@ function setting(string $k, $default = null) {
     return $cache[$k] ?? $default;
 }
 // Atualiza o banco de uma instalação existente sem reinstalar (roda uma vez por versão).
-const SCHEMA_VERSION = 12;
+const SCHEMA_VERSION = 13;
 function migrate(): void {
     if ((int) setting('schema_version', '1') >= SCHEMA_VERSION) return;
     try { db()->query('SELECT teaching_director_name FROM institutions LIMIT 1'); }
@@ -104,6 +104,15 @@ function migrate(): void {
             foreach (schema_statements(CONFIG['db']['driver'] ?? 'mysql') as $st)
                 if (preg_match('/CREATE (TABLE|INDEX) (purchase_requests|purchase_items|purchase_quotes|purchase_quote_prices|purchase_events|purchase_req_inst|purchase_events_req)\b/', $st)) db()->exec($st);
         }
+    }
+    if ((int) setting('schema_version', '1') < 13) { // Compras: o perfil Diretoria aprova compras; histórico guarda a etapa anterior (para voltar etapa)
+        try { db()->query('SELECT from_status FROM purchase_events LIMIT 1'); }
+        catch (PDOException $e) {
+            db()->exec('ALTER TABLE purchase_events ADD COLUMN from_status VARCHAR(12)');
+            db()->exec('ALTER TABLE purchase_events ADD COLUMN reverted TINYINT NOT NULL DEFAULT 0');
+        }
+        foreach (col("SELECT id FROM roles WHERE kind = 'DIRECTOR'") as $rid)
+            if (!val("SELECT 1 FROM role_permissions WHERE role_id = ? AND perm = 'purchase:approve'", [$rid])) insert('role_permissions', ['role_id' => $rid, 'perm' => 'purchase:approve']);
     }
     // remetente dos e-mails com nome antigo da plataforma passa a usar o nome da marca instalada
     if (in_array(setting('mail_from_name'), ['Academus', 'Aquinus', 'Summa'], true) && setting('mail_from_name') !== APP_NAME) set_setting('mail_from_name', APP_NAME);

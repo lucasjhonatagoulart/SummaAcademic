@@ -30,6 +30,9 @@
     box.hidden = !on; $$("input,select,textarea", box).forEach((x) => { x.disabled = !on; });
   });
   if (showWhen.length) { document.addEventListener("change", syncShow); syncShow(); }
+  // Valor em reais: digita só números e os centavos entram sozinhos (1 → 0,01; 12345 → 123,45)
+  const moneyFmt = (digits) => { const d = digits.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 13); if (!d) return ""; const c = d.padStart(3, "0"); return c.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "," + c.slice(-2); };
+  document.addEventListener("input", (e) => { const el = e.target; if (!el.matches || !el.matches("input[data-money]")) return; el.value = moneyFmt(el.value); el.setSelectionRange(el.value.length, el.value.length); });
   // Linhas que se adicionam e removem (data-add-row="#template", data-remove-row)
   let rowSeq = 1000;
   document.addEventListener("click", (e) => {

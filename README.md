@@ -105,15 +105,15 @@ O **Patrimônio** é um sistema à parte, na pasta `patrimonio/`, com banco pró
 
 ## Compras (solicitações de compra)
 
-Módulo nativo, no portal `comp` (`app/c/purchases.php`). Fluxo: **Rascunho → Enviada → Em cotação → Aguardando aprovação → Aprovada → Comprada → Recebida** (ou Recusada / Cancelada).
+Módulo nativo, no portal `comp` (`app/c/purchases.php`). Fluxo: **Rascunho → Aguardando a direção → (Em cotação → Cotação para aprovar) → Aprovada → Comprada → Recebida** (ou Recusada / Cancelada).
 
-- **Nova solicitação:** título, setor, justificativa, prazo, prioridade, **local da compra** (Mercado Livre, Magalu, Amazon, Shopee, site do fornecedor, loja física ou outro; link para os sites), **forma de pagamento** (Pix, Boleto ou Cartão de crédito, com parcelas de 1x a 12x numa lista) e itens, cada um marcado como patrimoniável ou consumo.
-- **Cotações:** até 3 por solicitação, com preço por item, frete, prazo, local e pagamento. A ficha mostra as cotações em cartões (com selos Menor preço e Menor prazo) e o botão *Exibir em tabela* para comparar item a item.
-- **Aprovação única:** quem aprova escolhe a cotação vencedora. Recusar, ou escolher uma que não é a mais barata, exige motivo.
-- **Recebimento:** número da NF-e, data e quantidade recebida por item. Se houver itens patrimoniáveis, aparece *Importar para o Patrimônio?* (Importar / Agora não; dá para enviar depois pela ficha).
-- **Envio ao Patrimônio:** o Summa grava um arquivo em `patrimonio/entradas-compras/` (pasta bloqueada para a web) e o Patrimônio o importa ao abrir a Visão geral ou Notas fiscais, como **NF-e em rascunho** com fornecedor, número, quantidades e valores da cotação. Lá se define conta patrimonial, local e patrimônio e se incorpora. O mesmo envio nunca é importado duas vezes.
-- **Permissões** (liberadas por usuário em Módulos e áreas › Compras): *Solicitar* (`purchase:request`, vê só as próprias), *Cotar e comprar* (`purchase:manage`), *Aprovar* (`purchase:approve`) e *Consulta* (`purchase:read`). Nenhum perfil pronto recebe Compras: o administrador libera para cada pessoa.
-- Também tem Fornecedores (montado pelas cotações), Relatórios (por mês, por setor e por etapa), avisos no sino e registro na auditoria.
+- **Nova solicitação:** o título é gerado (*Solicitação de Compra Nº 0001*). Setor em lista (cadastrada em Compras › Setores), justificativa, prazo, prioridade, itens com valor estimado obrigatório (campo em reais com máscara: digita só os números), local da compra (Mercado Livre, Magalu, Amazon, Shopee, site do fornecedor, loja física ou outro) e forma de pagamento (Pix, Boleto ou Cartão de crédito com parcelas de 1x a 12x).
+- **Direção:** a solicitação enviada vai direto para quem tem *Aprovar* (o perfil Diretoria já tem; libere também para o Presidente). Ela pode **assinar e aprovar sem cotação** (pelo valor estimado), **solicitar cotação de preços** ou **recusar** (com motivo). Aprovar é assinado com a senha de acesso; nome, data e hora ficam na ficha.
+- **Cotação, quando pedida:** o próprio solicitante (ou Compras) registra até 3 cotações e envia de volta à direção, que escolhe a vencedora e assina. Escolher uma que não é a mais barata exige motivo. A ficha mostra as cotações em cartões e o botão *Exibir em tabela*.
+- **Compra e recebimento:** Compras registra o pedido e o recebimento (NF-e, quantidades). Com itens patrimoniáveis, aparece *Importar para o Patrimônio?*; os itens chegam lá como NF-e em rascunho (pasta `patrimonio/entradas-compras/`, bloqueada para a web).
+- **Voltar etapa e excluir:** quem tem a permissão *Voltar etapa e excluir* volta a solicitação uma etapa por vez (desfaz assinatura, compra ou recebimento) e exclui solicitações, sempre com motivo, registrado no histórico e na auditoria. Quem pediu pode excluir o próprio rascunho.
+- **Permissões:** *Solicitar* (`purchase:request`), *Comprar e receber* (`purchase:manage`), *Aprovar* (`purchase:approve`, Diretoria e Presidência), *Consulta* (`purchase:read`) e *Voltar etapa e excluir* (`purchase:admin`).
+- Também tem Fornecedores, Relatórios, Setores, avisos no sino e registro na auditoria.
 
 ## Exportar para ERP (Omie)
 

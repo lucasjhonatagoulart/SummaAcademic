@@ -56,7 +56,7 @@ function portals_for(array $roles, array $perms, bool $isProf, bool $isStudent):
     if (in_array('ADMIN', $roles, true) || array_intersect(ADMIN_PORTAL_PERMS, $perms)) $out[] = 'admin';
     if ($has('reports:institutional') || $has('reports:finance')) $out[] = 'dir';
     if ($has('finance:manage') || $has('payroll:manage')) $out[] = 'fin';
-    if (array_intersect(['purchase:request', 'purchase:manage', 'purchase:approve', 'purchase:read'], $perms)) $out[] = 'comp';
+    if (array_intersect(['purchase:request', 'purchase:manage', 'purchase:approve', 'purchase:read', 'purchase:admin'], $perms)) $out[] = 'comp';
     if ($isProf && $has('classroom:own')) $out[] = 'prof';
     if ($isStudent && $has('student-portal:own')) $out[] = 'aluno';
     return $out ?: ['admin'];

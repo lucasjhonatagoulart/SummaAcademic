@@ -26,17 +26,22 @@ t('rateio 250 em 3 turmas soma 250', array_sum(split_cents(25000, 3)) === 25000 
 t('rateio turma única', split_cents(25000, 1) === [25000]);
 t('valor por hora-aula', lesson_value(9000, 'HORA', 2) === 18000 && lesson_value(25000, 'AULA', 2) === 25000);
 // Compras
-t('código da solicitação', purchase_code(7) === 'SC-0007' && purchase_code(12345) === 'SC-12345');
+t('número da solicitação', purchase_code(7) === 'Nº 0007' && purchase_code(12345) === 'Nº 12345');
+t('título gerado', purchase_title(7) === 'Solicitação de Compra Nº 0007');
+t('resumo dos itens', purchase_summary('Notebook', 3) === 'Notebook + 2 itens' && purchase_summary('Mouse', 2) === 'Mouse + 1 item' && purchase_summary('Cabo', 1) === 'Cabo' && purchase_summary(null, 0) === 'Sem itens');
+t('setores: um por linha, sem repetir', parse_purchase_sectors("TI\n\n  Biblioteca \nti\nAdministração") === ['Administração', 'Biblioteca', 'TI']);
 t('total da cotação com frete', purchase_quote_total([1 => 8, 2 => 2], [1 => 219900, 2 => 5900], 3000) === 8 * 219900 + 2 * 5900 + 3000);
 t('item sem preço conta zero', purchase_quote_total([1 => 3], [], 0) === 0);
 t('menor cotação', purchase_cheapest([['id' => 4, 'total_cents' => 500], ['id' => 5, 'total_cents' => 400], ['id' => 6, 'total_cents' => 400]]) === 5);
 t('sem cotações', purchase_cheapest([]) === null);
 t('pagamento no cartão mostra parcelas', purchase_payment_label('CARTAO', 10) === 'Cartão de crédito · 10x' && purchase_payment_label('CARTAO', 1) === 'Cartão de crédito · à vista' && purchase_payment_label('PIX', 3) === 'Pix');
 t('local Outro usa o nome informado', purchase_place_label('Outro', ' Papelaria Central ') === 'Papelaria Central' && purchase_place_label('Magalu', 'x') === 'Magalu');
-t('passos do andamento', purchase_step('ENVIADA') === 0 && purchase_step('APROVACAO') === 2 && purchase_step('RECEBIDA') === 5);
-$ok = ['title' => 'Notebooks do laboratório', 'sector' => 'TI', 'justification' => 'Os computadores atuais não rodam os programas.', 'needed_by' => '', 'priority' => 'NORMAL', 'place' => 'Mercado Livre', 'place_other' => '', 'link' => 'https://exemplo.com/p', 'payment' => 'CARTAO', 'installments' => 10];
+t('passos do andamento', purchase_step('ENVIADA') === 2 && purchase_step('COTACAO') === 1 && purchase_step('APROVACAO') === 2 && purchase_step('RECEBIDA') === 5);
+$ok = ['sector' => 'TI', 'justification' => 'Os computadores atuais não rodam os programas.', 'needed_by' => '', 'priority' => 'NORMAL', 'place' => 'Mercado Livre', 'place_other' => '', 'link' => 'https://exemplo.com/p', 'payment' => 'CARTAO', 'installments' => 10];
 $it = [['description' => 'Notebook', 'quantity' => 8, 'unit' => 'un.', 'est_unit_cents' => 230000, 'patrimonial' => 1]];
-t('solicitação válida', validate_purchase_request($ok, $it, '2026-11-19') === null);
+t('solicitação válida', validate_purchase_request($ok, $it, '2026-11-19', ['TI', 'Biblioteca']) === null);
+t('setor fora da lista recusado', validate_purchase_request(['sector' => 'Cozinha'] + $ok, $it, '2026-11-19', ['TI']) !== null);
+t('item sem valor estimado recusado', validate_purchase_request($ok, [['est_unit_cents' => null] + $it[0]], '2026-11-19') !== null);
 t('cartão acima de 12x recusado', validate_purchase_request(['installments' => 13] + $ok, $it, '2026-11-19') !== null);
 t('Outro sem nome recusado', validate_purchase_request(['place' => 'Outro', 'place_other' => ''] + $ok, $it, '2026-11-19') !== null);
 t('local fora da lista recusado', validate_purchase_request(['place' => 'Loja X'] + $ok, $it, '2026-11-19') !== null);

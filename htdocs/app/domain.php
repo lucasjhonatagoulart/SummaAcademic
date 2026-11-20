@@ -209,12 +209,14 @@ function fold(string $s): string {
 // ---------- Compras ----------
 /** Etapas da solicitação: código => [rótulo, classe do selo] */
 const PURCHASE_STATUS = [
-    'RASCUNHO' => ['Rascunho', 'b-neutral'], 'ENVIADA' => ['Enviada', 'b-neutral'], 'COTACAO' => ['Em cotação', 'b-info'],
-    'APROVACAO' => ['Aguardando aprovação', 'b-warn'], 'APROVADA' => ['Aprovada', 'b-teal'], 'COMPRADA' => ['Comprada', 'b-violet'],
+    'RASCUNHO' => ['Rascunho', 'b-neutral'], 'ENVIADA' => ['Aguardando a direção', 'b-warn'], 'COTACAO' => ['Em cotação', 'b-info'],
+    'APROVACAO' => ['Cotação para aprovar', 'b-warn'], 'APROVADA' => ['Aprovada', 'b-teal'], 'COMPRADA' => ['Comprada', 'b-violet'],
     'RECEBIDA' => ['Recebida', 'b-ok'], 'RECUSADA' => ['Recusada', 'b-bad'], 'CANCELADA' => ['Cancelada', 'b-neutral'],
 ];
-/** Passos do andamento mostrados na ficha */
+/** Passos do andamento mostrados na ficha (a cotação só acontece quando a direção pede) */
 const PURCHASE_STEPS = ['Enviada', 'Cotação', 'Aprovação', 'Compra', 'Recebimento'];
+/** Setores sugeridos enquanto a instituição não cadastra os seus */
+const PURCHASE_DEFAULT_SECTORS = ['Administração', 'Biblioteca', 'Coordenação', 'Diretoria', 'Financeiro', 'Laboratórios', 'Manutenção', 'Secretaria', 'TI'];
 const PURCHASE_PLACES = ['Mercado Livre', 'Magalu', 'Amazon', 'Shopee', 'Site do fornecedor', 'Fornecedor local ou loja física', 'Outro'];
 /** Locais que são sites: pedem link do produto */
 const PURCHASE_ONLINE = ['Mercado Livre', 'Magalu', 'Amazon', 'Shopee', 'Site do fornecedor'];
@@ -222,10 +224,18 @@ const PURCHASE_PAYMENTS = ['PIX' => 'Pix', 'BOLETO' => 'Boleto', 'CARTAO' => 'Ca
 const PURCHASE_UNITS = ['un.', 'cx.', 'pct.', 'resma', 'kg', 'l', 'm', 'par', 'jogo', 'kit'];
 const PURCHASE_MAX_QUOTES = 3;
 
-function purchase_code(int $id): string { return 'SC-' . str_pad((string) $id, 4, '0', STR_PAD_LEFT); }
-/** Índice do passo atual no andamento (5 = concluída) */
+function purchase_code(int $id): string { return 'Nº ' . str_pad((string) $id, 4, '0', STR_PAD_LEFT); }
+/** Título gerado: "Solicitação de Compra Nº 0007" */
+function purchase_title(int $id): string { return 'Solicitação de Compra Nº ' . str_pad((string) $id, 4, '0', STR_PAD_LEFT); }
+/** Resumo dos itens para as listas: "Notebook 15 polegadas + 2 itens" */
+function purchase_summary(?string $first, int $count): string {
+    $first = trim((string) $first);
+    if ($first === '') return 'Sem itens';
+    return $count > 1 ? $first . ' + ' . ($count - 1) . ' ' . ($count - 1 === 1 ? 'item' : 'itens') : $first;
+}
+/** Índice do passo atual no andamento (5 = concluída). Enviada já espera a direção (passo Aprovação). */
 function purchase_step(string $status): int {
-    return ['RASCUNHO' => 0, 'ENVIADA' => 0, 'COTACAO' => 1, 'APROVACAO' => 2, 'RECUSADA' => 2, 'APROVADA' => 3, 'COMPRADA' => 4, 'RECEBIDA' => 5, 'CANCELADA' => 0][$status] ?? 0;
+    return ['RASCUNHO' => 0, 'ENVIADA' => 2, 'COTACAO' => 1, 'APROVACAO' => 2, 'RECUSADA' => 2, 'APROVADA' => 3, 'COMPRADA' => 4, 'RECEBIDA' => 5, 'CANCELADA' => 0][$status] ?? 0;
 }
 function purchase_payment_label(string $payment, int $installments): string {
     $l = PURCHASE_PAYMENTS[$payment] ?? $payment;
@@ -244,6 +254,13 @@ function purchase_cheapest(array $quotes): ?int {
     foreach ($quotes as $q) if ($best === null || (int) $q['total_cents'] < (int) $best['total_cents']) $best = $q;
     return $best ? (int) $best['id'] : null;
 }
+/** Setores digitados um por linha: sem vazios, sem repetidos, em ordem alfabética */
+function parse_purchase_sectors(string $text): array {
+    $out = [];
+    foreach (preg_split('/\R/u', $text) as $l) { $l = trim(preg_replace('/\s+/u', ' ', $l)); if ($l !== '' && mb_strlen($l) <= 80) $out[mb_strtolower($l)] ??= $l; }
+    $out = array_values($out); sort($out, SORT_LOCALE_STRING);
+    return array_slice($out, 0, 100);
+}
 function valid_http_url(string $u): bool { return (bool) preg_match('#^https?://[^\s<>"]{3,}$#i', $u) && filter_var($u, FILTER_VALIDATE_URL) !== false; }
 /** Confere local e forma de pagamento (pedido e cotação usam as mesmas regras) */
 function validate_purchase_place_payment(array $i): ?string {
@@ -255,11 +272,9 @@ function validate_purchase_place_payment(array $i): ?string {
     if (($i['payment'] ?? '') === 'CARTAO' && ($n < 1 || $n > 12)) return 'Escolha de 1 a 12 parcelas.';
     return null;
 }
-/** Confere uma solicitação antes de salvar; $items: [['description','quantity','unit','est_unit_cents','patrimonial']] */
-function validate_purchase_request(array $i, array $items, string $today): ?string {
-    $t = trim((string) ($i['title'] ?? ''));
-    if (mb_strlen($t) < 3 || mb_strlen($t) > 160) return 'Informe um título de 3 a 160 caracteres.';
-    if (trim((string) ($i['sector'] ?? '')) === '' || mb_strlen((string) $i['sector']) > 80) return 'Informe o setor.';
+/** Confere uma solicitação antes de salvar; $items: [['description','quantity','unit','est_unit_cents','patrimonial']]; $sectors: setores aceitos */
+function validate_purchase_request(array $i, array $items, string $today, array $sectors = []): ?string {
+    if (trim((string) ($i['sector'] ?? '')) === '' || mb_strlen((string) $i['sector']) > 80 || ($sectors && !in_array($i['sector'], $sectors, true))) return 'Escolha o setor.';
     if (mb_strlen(trim((string) ($i['justification'] ?? ''))) < 10) return 'Explique em uma frase por que a compra é necessária.';
     if (($i['needed_by'] ?? '') !== '' && (!valid_date($i['needed_by']) || $i['needed_by'] < $today)) return 'A data "Precisa até" deve ser hoje ou depois.';
     if (!in_array($i['priority'] ?? '', ['NORMAL', 'URGENTE'], true)) return 'Escolha a prioridade.';
@@ -271,7 +286,7 @@ function validate_purchase_request(array $i, array $items, string $today): ?stri
         if (mb_strlen($it['description']) < 2 || mb_strlen($it['description']) > 255) return "Descreva o item $n.";
         if ($it['quantity'] < 1 || $it['quantity'] > 100000) return "A quantidade do item $n deve ser de 1 a 100.000.";
         if (!in_array($it['unit'], PURCHASE_UNITS, true)) return "Escolha a unidade do item $n.";
-        if ($it['est_unit_cents'] !== null && $it['est_unit_cents'] < 0) return "O valor estimado do item $n é inválido.";
+        if ($it['est_unit_cents'] === null || $it['est_unit_cents'] <= 0) return "Informe o valor estimado do item $n (a direção pode aprovar sem cotação).";
     }
     return null;
 }

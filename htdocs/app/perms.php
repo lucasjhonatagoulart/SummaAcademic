@@ -28,7 +28,7 @@ const MODULE_INFO = [
 const PATRIMONY_AREA_LABEL = ['patrimony:access' => 'Consulta', 'patrimony:invoices' => 'Notas fiscais', 'patrimony:assets' => 'Ativos e baixas', 'patrimony:catalogs' => 'Contas e locais',
     'patrimony:export' => 'Exportação', 'patrimony:admin' => 'Administração', 'patrimony:restore' => 'Restauração de backup'];
 /** Rótulos curtos das permissões de Compras (aparecem em "Suas áreas" no card do Workspace) */
-const PURCHASE_AREA_LABEL = ['purchase:request' => 'Solicitar', 'purchase:manage' => 'Cotar e comprar', 'purchase:approve' => 'Aprovar', 'purchase:read' => 'Consulta'];
+const PURCHASE_AREA_LABEL = ['purchase:request' => 'Solicitar', 'purchase:manage' => 'Comprar e receber', 'purchase:approve' => 'Aprovar', 'purchase:read' => 'Consulta', 'purchase:admin' => 'Voltar etapa e excluir'];
 const CONTROL_AREA_LABEL = ['users:manage' => 'Usuários', 'modules:manage' => 'Módulos', 'institution:settings' => 'Instituição e e-mail', 'platform:manage' => 'Instituições', 'audit:read' => 'Auditoria'];
 
 /**
@@ -88,9 +88,10 @@ const PERMISSIONS = [
     'student-portal:own' => ['student', 'Consultar cursos, notas, frequência e financeiro próprios'],
     'electives:enroll:own' => ['student', 'Escolher eletivas e horários'],
     'purchase:request' => ['purchasing', 'Abrir solicitações de compra e acompanhar as próprias'],
-    'purchase:manage' => ['purchasing', 'Registrar cotações, compras e recebimentos (vê todas as solicitações)'],
-    'purchase:approve' => ['purchasing', 'Aprovar ou recusar compras'],
+    'purchase:manage' => ['purchasing', 'Registrar compras e recebimentos, cotar por qualquer solicitante e cadastrar setores (vê todas as solicitações)'],
+    'purchase:approve' => ['purchasing', 'Aprovar compras, pedir cotação ou recusar (Diretoria e Presidência)'],
     'purchase:read' => ['purchasing', 'Consultar todas as solicitações, sem editar'],
+    'purchase:admin' => ['purchasing', 'Voltar uma solicitação para a etapa anterior e excluir solicitações'],
     'patrimony:access' => ['patrimony', 'Entrar no Patrimônio e consultar notas, ativos e relatórios'],
     'patrimony:invoices' => ['patrimony', 'Cadastrar, revisar e incorporar NF-e (importar XML)'],
     'patrimony:assets' => ['patrimony', 'Editar ativos e registrar baixas'],
@@ -104,7 +105,7 @@ const SYSTEM_ROLES = [
     'ADMIN' => ['Administrador', 'Acesso integral ao sistema', '*'],
     'STAFF' => ['Secretaria Acadêmica', 'Cadastros acadêmicos, históricos e comunicados',
         ['students:manage', 'professors:manage', 'courses:manage', 'terms:manage', 'classes:manage', 'transcripts:issue', 'records:edit-after-deadline', 'announcements:manage', 'board:manage', 'finance:read']],
-    'DIRECTOR' => ['Diretoria', 'Consulta de indicadores e do financeiro', ['reports:institutional', 'reports:finance']],
+    'DIRECTOR' => ['Diretoria', 'Consulta de indicadores e do financeiro; aprova compras', ['reports:institutional', 'reports:finance', 'purchase:approve']],
     'FINANCE' => ['Financeiro', 'Cobranças, pagamentos e inadimplência', ['finance:manage', 'payroll:manage']],
     'PROFESSOR' => ['Professor', 'Turmas vinculadas: diário, chamada e notas', ['classroom:own']],
     'STUDENT' => ['Aluno', 'Dados do próprio aluno', ['student-portal:own', 'electives:enroll:own']],
@@ -204,6 +205,7 @@ function nav_for(string $portal): array {
                 ['Solicitações', 'comp.solicitacoes', 'file-text', [], ['comp.solicitacao', 'comp.nova', 'comp.cotacao', 'comp.receber']],
                 ['Fornecedores', 'comp.fornecedores', 'truck', ['purchase:manage', 'purchase:approve', 'purchase:read']],
                 ['Relatórios', 'comp.relatorios', 'chart-column', ['purchase:manage', 'purchase:approve', 'purchase:read']],
+                ['Setores', 'comp.setores', 'building', ['purchase:manage', 'purchase:approve']],
             ],
         ],
         'prof' => [

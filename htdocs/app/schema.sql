@@ -455,6 +455,8 @@ CREATE TABLE purchase_events (
   actor_id INT UNSIGNED,
   action VARCHAR(30) NOT NULL,
   note VARCHAR(500),
+  from_status VARCHAR(12),
+  reverted TINYINT NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL,
   FOREIGN KEY (request_id) REFERENCES purchase_requests (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
